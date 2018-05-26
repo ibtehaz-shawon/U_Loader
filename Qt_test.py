@@ -8,7 +8,7 @@ class App(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.title = 'PyQt5 button - pythonspot.com'
+        self.title = 'Hello World! Immatur3 uTub3 Download3r'
         self.left = 10
         self.top = 10
         self.width = 640
