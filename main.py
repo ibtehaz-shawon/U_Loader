@@ -1,19 +1,14 @@
 import asyncio
 import sys
 from pytube import YouTube
-from threading import Thread
 import os
 
 
 class Main:
 
-    def __init__(self):
-        self._thread = None
-
     def on_complete(self, stream, file_handle):
         file_name = os.path.basename(file_handle.name)
         print("Download complete {}".format(file_name))
-        self._thread.join()
         return
 
     @staticmethod
@@ -23,9 +18,8 @@ class Main:
         print('Downloading {}, remaining {} mb'.format(file_name, bytes_remaining))
         return
 
-    async def start_download(self, _url, running_thread):
+    async def start_download(self, _url):
         try:
-            self._thread = running_thread
             print("Hitting url ... {}".format(_url))
             yt = YouTube(str(_url))
             yt.register_on_progress_callback(self.on_progress)
@@ -42,7 +36,5 @@ if __name__ == '__main__':
     asyncio.set_event_loop(loopie)
     tasks = []
     for url in urls:
-        thread = Thread()
-        thread.start()
-        tasks.append(asyncio.ensure_future(Main().start_download(url, thread)))
+        tasks.append(asyncio.ensure_future(Main().start_download(url)))
     loopie.run_until_complete(asyncio.gather(*tasks))
