@@ -28,24 +28,32 @@ class App(QWidget):
     @pyqtSlot()
     def on_click(self):
         print('PyQt5 button click')
-        StatusBar(self.title)
-
-
-class StatusBar(QMainWindow):
-
-    def __init__(self, title):
-        super().__init__(None)
-        self.title = title
-        self.left = 10
-        self.top = 10
-        self.width = 640
-        self.height = 480
         self.show_status_bar()
 
     def show_status_bar(self):
-        self.setWindowTitle(self.title)
-        self.statusBar().showMessage('Hello World!')
-        self.show()
+        w = QMainWindow()
+        w.resize(250, 150)
+        w.move(300, 300)
+        w.setWindowTitle('Simple')
+        w.show()
+        self.main_window.setWindowTitle(self.title)
+        self.main_window.statusBar().showMessage('Hello World!')
+        self.main_window.show()
+#
+# class StatusBar:
+#     def __init__(self, title):
+#         self.main_window = QMainWindow(None)
+#         self.title = title
+#         self.left = 10
+#         self.top = 10
+#         self.width = 640
+#         self.height = 480
+#         self.show_status_bar()
+#
+#     def show_status_bar(self):
+#         self.main_window.setWindowTitle(self.title)
+#         self.main_window.statusBar().showMessage('Hello World!')
+#         self.main_window.show()
 
 
 if __name__ == '__main__':
