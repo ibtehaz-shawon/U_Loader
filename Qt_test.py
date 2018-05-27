@@ -1,64 +1,46 @@
 import sys
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QWidget, QPushButton, QApplication, QDesktopWidget, QMainWindow
 
 
-class App(QWidget):
+class Example(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.title = 'Hello World! Immatur3 uTub3 Download3r'
-        self.left = 10
-        self.top = 10
-        self.width = 640
-        self.height = 480
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
+        qbtn = QPushButton('Click Me!', self)
+        # qbtn.clicked.connect(QApplication.instance().quit)
+        qbtn.clicked.connect(self.btn_click)
+        qbtn.resize(qbtn.sizeHint())
+        self.center()
+        qbtn.move(50, 50)
 
-        button = QPushButton('PyQt5 button', self)
-        button.setToolTip('This is an example button')
-        button.move(100, 70)
-        button.clicked.connect(self.on_click)
+        self.setGeometry(300, 300, 250, 150)
+        self.setWindowTitle('Quit button')
         self.show()
 
-    @pyqtSlot()
-    def on_click(self):
-        print('PyQt5 button click')
-        self.show_status_bar()
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
-    def show_status_bar(self):
-        w = QMainWindow()
-        w.resize(250, 150)
-        w.move(300, 300)
-        w.setWindowTitle('Simple')
-        w.show()
-        self.main_window.setWindowTitle(self.title)
-        self.main_window.statusBar().showMessage('Hello World!')
-        self.main_window.show()
-#
-# class StatusBar:
-#     def __init__(self, title):
-#         self.main_window = QMainWindow(None)
-#         self.title = title
-#         self.left = 10
-#         self.top = 10
-#         self.width = 640
-#         self.height = 480
-#         self.show_status_bar()
-#
-#     def show_status_bar(self):
-#         self.main_window.setWindowTitle(self.title)
-#         self.main_window.statusBar().showMessage('Hello World!')
-#         self.main_window.show()
+    def btn_click(self):
+        new_Window = QMainWindow()
+        new_Window.title = 'PyQt5 status bar example - pythonspot.com'
+        new_Window.left = 10
+        new_Window.top = 10
+        new_Window.width = 640
+        new_Window.height = 480
+
+        new_Window.setWindowTitle("Hello World?")
+        new_Window.statusBar().showMessage('Message in statusbar.')
+        self.new_Window.show()
+        print("hello world!")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App()
+    ex = Example()
     sys.exit(app.exec_())
-
-
