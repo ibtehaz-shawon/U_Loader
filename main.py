@@ -1,12 +1,17 @@
 import asyncio
-import sys
-from pytube import YouTube
+import glob
 import os
+import os.path
+import sys
+
+from aiomultiprocess import Pool
+from pytube import YouTube
 
 
 class Main:
 
-    def on_complete(self, stream, file_handle):
+    @staticmethod
+    def on_complete(stream, file_handle):
         file_name = os.path.basename(file_handle.name)
         print("Download complete {}".format(file_name))
         return
@@ -20,21 +25,39 @@ class Main:
 
     async def start_download(self, _url):
         try:
-            print("Hitting url ... {}".format(_url))
             yt = YouTube(str(_url))
-            yt.register_on_progress_callback(self.on_progress)
-            yt.register_on_complete_callback(self.on_complete)
-            yt.streams.first().download()
+
+            if glob.glob(os.path.realpath(yt.title + ".*")):
+                print("File already available [[ {} ]] ".format(str(os.path.realpath(yt.title + ".*"))))
+            else:
+                print("Downloading....{}".format(os.path.realpath(yt.title + ".*")))
+                yt.register_on_progress_callback(self.on_progress)
+                yt.register_on_complete_callback(self.on_complete)
+                # yt.streams.first().download()
         except KeyboardInterrupt as error:
             sys.exit(str(error))
 
+    async def process_pool(self, urls):
+        async with Pool(maxtasksperchild=5, childconcurrency=10) as pool:
+            result = await pool.map(self.start_download, urls)
+            index = 0
+            for query in result:
+                index += 1
+                if query is not None:
+                    print("Error in {} -- {}".format(index, str(query)))
+
 
 if __name__ == '__main__':
-    urls = ['https://www.youtube.com/watch?v=76k991G0sJo',
-            'https://www.youtube.com/watch?v=6ED9QP6P5rI']
+    file = open('request_url.txt', 'r')
     loopie = asyncio.new_event_loop()
     asyncio.set_event_loop(loopie)
     tasks = []
-    for url in urls:
-        tasks.append(asyncio.ensure_future(Main().start_download(url)))
-    loopie.run_until_complete(asyncio.gather(*tasks))
+    for url in file:
+        tasks.append(url)
+
+    loopie.run_until_complete(asyncio.gather(asyncio.ensure_future(Main().process_pool(tasks))))
+
+    # for url in file:
+    #     index += 1
+    #     tasks.append(asyncio.ensure_future(Main().start_download(url, index)))
+    # loopie.run_until_complete(asyncio.gather(*tasks))
