@@ -6,6 +6,7 @@ import sys
 
 from aiomultiprocess import Pool
 from pytube import YouTube
+from util import safe_filename
 
 
 class Main:
@@ -26,16 +27,27 @@ class Main:
     async def start_download(self, _url):
         try:
             yt = YouTube(str(_url))
-
-            if glob.glob(os.path.realpath(yt.title + ".*")):
-                print("File already available [[ {} ]] ".format(str(os.path.realpath(yt.title + ".*"))))
-            else:
-                print("Downloading....{}".format(os.path.realpath(yt.title + ".*")))
-                yt.register_on_progress_callback(self.on_progress)
-                yt.register_on_complete_callback(self.on_complete)
-                # yt.streams.first().download()
+            await self.start_stream(yt.streams.filter(file_extension='mp4', progressive=True).first())
         except KeyboardInterrupt as error:
             sys.exit(str(error))
+
+    async def start_stream(self, stream):
+        try:
+            title = stream.player_config_args['title']
+            _filename = safe_filename(title)
+            _filename = _filename + '.' + stream.subtype
+
+            if glob.glob('~/Music/' + _filename):
+                print("File already available [[ {} ]] ".format(str(os.path.realpath(_filename))))
+            else:
+                print("Downloading....{}".format('~/Music/' + _filename))
+                stream.register_on_progress_callback(self.on_progress)
+                stream.register_on_complete_callback(self.on_complete)
+                await stream.download(output_path='~/Music/', filename=_filename)
+        except KeyboardInterrupt as error:
+            sys.exit(str(error))
+        finally:
+            return
 
     async def process_pool(self, urls):
         async with Pool(maxtasksperchild=5, childconcurrency=10) as pool:
