@@ -43,14 +43,15 @@ class Main:
                 print("Downloading....{}".format('~/Music/' + _filename))
                 stream.register_on_progress_callback(self.on_progress)
                 stream.register_on_complete_callback(self.on_complete)
-                await stream.download(output_path='~/Music/', filename=_filename)
+                # asyncio.ensure_future(await stream.download(output_path='~/Music/', filename=_filename))
+                stream.download(output_path='~/Music/', filename=_filename)
         except KeyboardInterrupt as error:
             sys.exit(str(error))
         finally:
             return
 
     async def process_pool(self, urls):
-        async with Pool(maxtasksperchild=5, childconcurrency=10) as pool:
+        async with Pool(maxtasksperchild=1, childconcurrency=2) as pool:
             result = await pool.map(self.start_download, urls)
             index = 0
             for query in result:
@@ -67,9 +68,9 @@ if __name__ == '__main__':
     for url in file:
         tasks.append(url)
 
+    # Main().process_pool(tasks)
     loopie.run_until_complete(asyncio.gather(asyncio.ensure_future(Main().process_pool(tasks))))
 
     # for url in file:
-    #     index += 1
-    #     tasks.append(asyncio.ensure_future(Main().start_download(url, index)))
+    #     tasks.append(asyncio.ensure_future(Main().start_download(url)))
     # loopie.run_until_complete(asyncio.gather(*tasks))
