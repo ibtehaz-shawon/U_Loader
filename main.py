@@ -27,11 +27,11 @@ class Main:
     async def start_download(self, _url):
         try:
             yt = YouTube(str(_url))
-            await self.start_stream(yt.streams.filter(file_extension='mp4', progressive=True).first())
+            await self.start_stream(yt.streams.filter(file_extension='mp4', progressive=True).first(), yt)
         except KeyboardInterrupt as error:
             sys.exit(str(error))
 
-    async def start_stream(self, stream):
+    async def start_stream(self, stream, youtube_obj):
         try:
             title = stream.player_config_args['title']
             _filename = safe_filename(title)
@@ -41,10 +41,15 @@ class Main:
                 print("File already available [[ {} ]] ".format(str(os.path.realpath(_filename))))
             else:
                 print("Downloading....{}".format('~/Music/' + _filename))
-                stream.register_on_progress_callback(self.on_progress)
-                stream.register_on_complete_callback(self.on_complete)
+                youtube_obj.stream.register_on_progress_callback(self.on_progress)
+                print("Hello wo rld2")
+                youtube_obj.stream.register_on_complete_callback(self.on_complete)
+
+                print("Hello world3 -- test")
                 # asyncio.ensure_future(await stream.download(output_path='~/Music/', filename=_filename))
-                stream.download(output_path='~/Music/', filename=_filename)
+                youtube_obj.stream.download(output_path='~/Music/', filename=_filename)
+
+                print("Hello world --- 45621")
         except KeyboardInterrupt as error:
             sys.exit(str(error))
         finally:

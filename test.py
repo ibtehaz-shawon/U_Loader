@@ -5,6 +5,8 @@ from pytube import YouTube
 import os.path
 import glob
 
+from main import Main
+
 
 def unicode(s):
     """No-op."""
@@ -37,31 +39,53 @@ def safe_filename(s, max_length=255):
     return unicode(filename[:max_length].rsplit(' ', 0)[0])
 
 
+def on_complete(stream, file_handle):
+    file_name = os.path.basename(file_handle.name)
+    print("Download complete {}".format(file_name))
+    return
+
+
+def on_progress(stream, chunk, file_handle, bytes_remaining):
+    bytes_remaining = bytes_remaining / (1000 * 1000)
+    file_name = os.path.basename(file_handle.name)
+    print('Downloading {}, remaining {} mb'.format(file_name, bytes_remaining))
+    return
+
+
 def stream_call(_url, x):
     yt = YouTube(str(_url))
-    z = [yt.streams.filter(file_extension='mp4', progressive=True).first()]
-    print(z)
-    for y in z:
-        title = y.player_config_args['title']
-        _filename = safe_filename(title)
-        final_filename = _filename + '.' + y.subtype
-        if glob.glob(os.path.realpath(final_filename)):
-            print("found " + str(final_filename))
-        else:
-            print("Not found " + str(final_filename))
-            print("Complete file path " + str(os.path.realpath(final_filename)))
+    stream = yt.streams.filter(file_extension='mp4', progressive=True).first()
+    title = stream.player_config_args['title']
+    _filename = safe_filename(title)
+    final_filename = _filename + '.' + stream.subtype
+    if glob.glob('~/Music/' + final_filename):
+        print("found " + str(final_filename))
+    else:
+        print("Not found " + str(final_filename))
+        print("Complete file path " + str('~/Music/' + final_filename))
+
+        if not os.path.exists(_filename):
+            with open(_filename, 'w'):
+                pass
+        # yt.register_on_progress_callback(on_progress) \
+        #     .register_on_complete_callback(on_complete)
+        yt.streams.filter(file_extension='mp4', progressive=True).first()\
+            .download(filename=final_filename)
+        # .register_on_progress_callback(Main().on_progress)\
+        # .register_on_complete_callback(Main().on_complete)\
+    print("Download complete!")
     sys.exit()
 
 
 file = open('request_url.txt', 'r')
 x = []
-stream_call('https://www.youtube.com/watch?v=8mCCMhuKEYw', x)
+stream_call('https://www.youtube.com/watch?v=uVibq-Uvmvc', x)
 # for line in file:
 #     stream_call(line, x)
 
-for filename in x:
-    if glob.glob(os.path.realpath(filename + ".*")):
-        print("found " + str(filename))
-    else:
-        print("Not found " + str(filename))
-        print("Complete file path " + str(os.path.realpath(filename + ".*")))
+# for filename in x:
+#     if glob.glob(os.path.realpath(filename + ".*")):
+#         print("found " + str(filename))
+#     else:
+#         print("Not found " + str(filename))
+#         print("Complete file path " + str(os.path.realpath(filename + ".*")))
