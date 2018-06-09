@@ -4,7 +4,6 @@ import os
 import os.path
 import sys
 
-from aiomultiprocess import Pool
 from pytube import YouTube
 from util import safe_filename
 
@@ -24,45 +23,38 @@ class Main:
         print('Downloading {}, remaining {} mb'.format(file_name, bytes_remaining))
         return
 
-    async def start_download(self, _url):
+    def start_download(self, _url, is_audio=False):
         try:
             yt = YouTube(str(_url))
-            await self.start_stream(yt.streams.filter(file_extension='mp4', progressive=True).first(), yt)
-        except KeyboardInterrupt as error:
-            sys.exit(str(error))
+            yt.register_on_progress_callback(self.on_progress)
+            yt.register_on_complete_callback(self.on_complete)
+            _ = yt.streams.filter(file_extension='mp4', progressive=True).first()
+            _filename = safe_filename(_.player_config_args['title'])
 
-    async def start_stream(self, stream, youtube_obj):
-        try:
-            title = stream.player_config_args['title']
-            _filename = safe_filename(title)
-            _filename = _filename + '.' + stream.subtype
-
-            if glob.glob('~/Music/' + _filename):
+            print(yt
+                  .streams
+                  .filter(only_audio=True)
+                  .all())
+            if glob.glob(_filename):
                 print("File already available [[ {} ]] ".format(str(os.path.realpath(_filename))))
+                return False
             else:
-                print("Downloading....{}".format('~/Music/' + _filename))
-                youtube_obj.stream.register_on_progress_callback(self.on_progress)
-                print("Hello wo rld2")
-                youtube_obj.stream.register_on_complete_callback(self.on_complete)
-
-                print("Hello world3 -- test")
-                # asyncio.ensure_future(await stream.download(output_path='~/Music/', filename=_filename))
-                youtube_obj.stream.download(output_path='~/Music/', filename=_filename)
-
-                print("Hello world --- 45621")
+                # print(yt
+                #       .streams
+                #       .filter(file_extension='mp4', progressive=True)
+                #       .first().parse_codecs())
+                if is_audio:
+                    yt.streams.filter(only_audio=True).first().download()
+                    os.rename(_filename + '.mp4', _filename + '.mp3')
+                else:
+                    yt.streams.filter(file_extension='mp4', progressive=True).first().download()
+                return True
         except KeyboardInterrupt as error:
             sys.exit(str(error))
+        except BaseException as error:
+            sys.exit((str(error)))
         finally:
-            return
-
-    async def process_pool(self, urls):
-        async with Pool(maxtasksperchild=1, childconcurrency=2) as pool:
-            result = await pool.map(self.start_download, urls)
-            index = 0
-            for query in result:
-                index += 1
-                if query is not None:
-                    print("Error in {} -- {}".format(index, str(query)))
+            return True
 
 
 if __name__ == '__main__':
@@ -71,11 +63,5 @@ if __name__ == '__main__':
     asyncio.set_event_loop(loopie)
     tasks = []
     for url in file:
-        tasks.append(url)
-
-    # Main().process_pool(tasks)
-    loopie.run_until_complete(asyncio.gather(asyncio.ensure_future(Main().process_pool(tasks))))
-
-    # for url in file:
-    #     tasks.append(asyncio.ensure_future(Main().start_download(url)))
-    # loopie.run_until_complete(asyncio.gather(*tasks))
+        if Main().start_download(url, is_audio=True):
+            break
