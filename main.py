@@ -9,9 +9,9 @@ from util import safe_filename
 
 class Main:
 
-    def __init__(self):
-        self._filename = None
-        self.thumbnail_url = None
+    def __init__(self, _filename = None, thumbnail_url = None):
+        self._filename = _filename
+        self.thumbnail_url = thumbnail_url
 
     @staticmethod
     def on_complete(stream, file_handle):
@@ -75,17 +75,20 @@ class Main:
             yt = YouTube(str(_url))
             yt.register_on_progress_callback(self.on_progress)
             yt.register_on_complete_callback(self.on_complete)
-            self.thumbnail_url = yt.thumbnail_url
+            if self.thumbnail_url is None:
+                self.thumbnail_url = yt.thumbnail_url
 
             if is_audio:
                 stream = yt.streams.filter(only_audio=True).first()
                 stream.download()
-                self._filename = safe_filename(stream.player_config_args['title'])
+                if self._filename is None:
+                    self._filename = safe_filename(stream.player_config_args['title'])
             else:
                 all_streams = yt.streams.filter(file_extension='mp4', progressive=True).all()
                 for stream in all_streams:
                     if stream.resolution == res:
-                        self._filename = safe_filename(stream.player_config_args['title'])
+                        if self._filename is None:
+                            self._filename = safe_filename(stream.player_config_args['title'])
                         stream.download()
                         break
 
