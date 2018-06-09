@@ -1,3 +1,7 @@
+eyeD3==0.8.6
+pathlib==1.0.1
 PyQt5==5.10.1
+python-magic==0.4.15
 pytube==9.2.2
 sip==4.19.8
+six==1.11.0
