@@ -1,3 +1,4 @@
+import datetime
 import os
 import os.path
 from pathlib import Path
@@ -9,7 +10,7 @@ from util import safe_filename
 
 class Main:
 
-    def __init__(self, _filename = None, thumbnail_url = None):
+    def __init__(self, _filename=None, thumbnail_url=None):
         self._filename = _filename
         self.thumbnail_url = thumbnail_url
 
@@ -80,18 +81,23 @@ class Main:
 
             if is_audio:
                 stream = yt.streams.filter(only_audio=True).first()
-                stream.download()
                 if self._filename is None:
                     self._filename = safe_filename(stream.player_config_args['title'])
+                stream.download(filename=self._filename)
             else:
                 all_streams = yt.streams.filter(file_extension='mp4', progressive=True).all()
+                is_download = False
+                if self._filename is None:
+                    self._filename = safe_filename(all_streams[0].player_config_args['title'])
                 for stream in all_streams:
                     if stream.resolution == res:
-                        if self._filename is None:
-                            self._filename = safe_filename(stream.player_config_args['title'])
-                        stream.download()
+                        stream.download(filename=self._filename)
+                        is_download = True
                         break
 
+                if not is_download:
+                    print("[[ {} ]] video isn't available on the given resolution: {}".format(self._filename, res))
+                    return False
             self.clean_up(is_audio, default_directory)
             return True
         except KeyboardInterrupt as error:
@@ -105,5 +111,5 @@ class Main:
 if __name__ == '__main__':
     file = open('request_url.txt', 'r')
     for url in file:
-        if Main().start_download(url, is_audio=True):
-            break
+        Main().start_download(url, is_audio=False, res='480p')
+        break
