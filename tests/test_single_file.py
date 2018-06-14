@@ -9,14 +9,14 @@ class TestMain(unittest.TestCase):
     test_url_three = 'https://www.youtube.com/watch?v=nVhNCTH8pDs'
 
     def test_audio(self):
-        self.assertEqual(Main(_filename='test_audio').start_download(self.test_url_one, is_audio=True), True)
+        self.assertEqual(Main(_filename='test_audio', _is_audio=True).start_download(self.test_url_one), True)
 
     def test_video_720(self):
-        self.assertEqual(Main(_filename='test_720').start_download(self.test_url_two, is_audio=False), True)
+        self.assertEqual(Main(_filename='test_720', _is_audio=True).start_download(self.test_url_two), True)
 
     def test_video_480(self):
         self.assertEqual(
-            Main(_filename='test_480').start_download(self.test_url_three, is_audio=False, res='480p'), True)
+            Main(_filename='test_480', _is_audio=True).start_download(self.test_url_three, res='480p'), True)
 
 
 if __name__ == '__main__':

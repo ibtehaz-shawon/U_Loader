@@ -1,7 +1,14 @@
+attrs==18.1.0
+Automat==0.7.0
+constantly==15.1.0
 eyeD3==0.8.6
+hyperlink==18.0.0
+idna==2.7
+incremental==17.5.0
 pathlib==1.0.1
-PyQt5==5.10.1
 python-magic==0.4.15
 pytube==9.2.2
 sip==4.19.8
 six==1.11.0
+Twisted==18.4.0
+zope.interface==4.5.0

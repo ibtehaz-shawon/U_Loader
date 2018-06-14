@@ -1,5 +1,6 @@
 import datetime
 import os
+import sys
 import os.path
 from pathlib import Path
 from shutil import copyfile
@@ -10,9 +11,10 @@ from util import safe_filename
 
 class Main:
 
-    def __init__(self, _filename=None, thumbnail_url=None):
+    def __init__(self, _filename=None, _thumbnail_url=None, _is_audio=False):
         self._filename = _filename
-        self.thumbnail_url = thumbnail_url
+        self.thumbnail_url = _thumbnail_url
+        self.is_audio = _is_audio
 
     @staticmethod
     def on_complete(stream, file_handle):
@@ -27,14 +29,13 @@ class Main:
         print('Downloading {}, remaining {} mb'.format(file_name, bytes_remaining))
         return
 
-    def clean_up(self, is_audio, default_directory):
+    def clean_up(self, default_directory):
         """
         cleans up the directory and removes file, copy to directory specified
-        :param is_audio: bool
         :param default_directory: UNIX directory currently
         :return: None
         """
-        if is_audio:
+        if self.is_audio:
             os.rename(self._filename + '.mp4', self._filename + '.mp3')
             # TODO : add thumbnail in mp3 here
             # if self.thumbnail_url is not None:
@@ -59,15 +60,13 @@ class Main:
     --------------------------------------------------
     """
 
-    def start_download(self, _url, is_audio=False,
-                       res='720p',
+    def start_download(self, _url, res='720p',
                        default_directory=os.path.join(str(Path.home()) + '/Music/')):
         """
         Main downloader to download files in the current directory.
         TODO: I can get the download url from the pytube and download it via
         TODO: urllib2 or something else. May be later.
         :param _url: str
-        :param is_audio: bool
         :param res: str
         :param default_directory: UNIX directory currently
         :return: bool | success or not
@@ -79,7 +78,7 @@ class Main:
             if self.thumbnail_url is None:
                 self.thumbnail_url = yt.thumbnail_url
 
-            if is_audio:
+            if self.is_audio:
                 stream = yt.streams.filter(only_audio=True).first()
                 if self._filename is None:
                     self._filename = safe_filename(stream.player_config_args['title'])
@@ -98,18 +97,30 @@ class Main:
                 if not is_download:
                     print("[[ {} ]] video isn't available on the given resolution: {}".format(self._filename, res))
                     return False
-            self.clean_up(is_audio, default_directory)
+            self.clean_up(default_directory)
             return True
         except KeyboardInterrupt as error:
             print(str(error))
+            self.remove_errr_file()
             return False
         except BaseException as error:
             print(str(error))
+            self.remove_errr_file()
             return False
+
+    def remove_errr_file(self):
+        if self.is_audio:
+            os.remove(self._filename + '.mp3')
+        else:
+            os.remove(self._filename + '.mp4')
 
 
 if __name__ == '__main__':
     file = open('request_url.txt', 'r')
+    if len(sys.argv) > 1:
+        is_audio = True if sys.argv[1] == 'mp3' else False
+    else:
+        is_audio = False
     for url in file:
-        Main().start_download(url, is_audio=False, res='480p')
-        break
+        Main(_is_audio=is_audio).start_download(url, res='720p')
+    print("Goodbye :)")
